@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import isEqual from "lodash/isEqual";
 import {
-  ThemeProvider,
   CssBaseline,
   Container,
   Box,
@@ -48,6 +47,7 @@ import NavBar from "../components/NavBar";
 import { TodoItem, TodoPriority } from "@/types/todo";
 import { getAppTheme } from "../theme";
 import "../page.css";
+import { useThemeContext } from "@/context/themeContext";
 
 const categories = [
   "General",
@@ -99,15 +99,14 @@ export default function Home() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, theme } = useThemeContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [greeting, setGreeting] = useState("Welcome back");
   const [editOpen, setEditOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
 
   const router = useRouter();
   const todosRef = useRef<TodoItem[]>([]);
@@ -119,18 +118,6 @@ export default function Home() {
       itemRefs.current[id] = React.createRef<HTMLDivElement>();
     }
     return itemRefs.current[id];
-  };
-
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
   };
 
   const fetchTodos = async (userId: number, showLoading = false) => {
@@ -152,24 +139,19 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-
     const hour = new Date().getHours();
     setGreeting(
       hour >= 18
         ? "Good Evening"
         : hour >= 12
           ? "Good Afternoon"
-          : "Good Morning",
+          : "Good Morning"
     );
   }, []);
 
   useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (!storedUser) {
       router.push("/auth/login");
@@ -372,7 +354,7 @@ export default function Home() {
     .sort(
       (a, b) =>
         (parseDate(a.dueDate)?.getTime() ?? 0) -
-        (parseDate(b.dueDate)?.getTime() ?? 0),
+        (parseDate(b.dueDate)?.getTime() ?? 0)
     );
 
   const todayTodos = todos.filter((todo) => {
@@ -393,7 +375,7 @@ export default function Home() {
     .sort(
       (a, b) =>
         (parseDate(a.dueDate)?.getTime() ?? 0) -
-        (parseDate(b.dueDate)?.getTime() ?? 0),
+        (parseDate(b.dueDate)?.getTime() ?? 0)
     )
     .slice(0, 5);
 
@@ -445,7 +427,7 @@ export default function Home() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -457,12 +439,7 @@ export default function Home() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Grid container spacing={3}>
@@ -801,7 +778,7 @@ export default function Home() {
                       color={priorityFilter === "high" ? "primary" : "default"}
                       onClick={() =>
                         setPriorityFilter(
-                          priorityFilter === "high" ? "all" : "high",
+                          priorityFilter === "high" ? "all" : "high"
                         )
                       }
                       icon={<Flag />}
@@ -812,7 +789,7 @@ export default function Home() {
                       color={categoryFilter === "today" ? "primary" : "default"}
                       onClick={() =>
                         setCategoryFilter(
-                          categoryFilter === "today" ? "all" : "today",
+                          categoryFilter === "today" ? "all" : "today"
                         )
                       }
                       icon={<CalendarMonth />}
@@ -1229,7 +1206,7 @@ export default function Home() {
                   setEditingTodo(
                     editingTodo
                       ? { ...editingTodo, task: e.target.value }
-                      : null,
+                      : null
                   )
                 }
               />
@@ -1242,7 +1219,7 @@ export default function Home() {
                     setEditingTodo(
                       editingTodo
                         ? { ...editingTodo, category: e.target.value }
-                        : null,
+                        : null
                     )
                   }
                 >
@@ -1265,7 +1242,7 @@ export default function Home() {
                             ...editingTodo,
                             priority: e.target.value as TodoPriority,
                           }
-                        : null,
+                        : null
                     )
                   }
                 >
@@ -1283,7 +1260,7 @@ export default function Home() {
                   setEditingTodo(
                     editingTodo
                       ? { ...editingTodo, dueDate: e.target.value }
-                      : null,
+                      : null
                   )
                 }
               />
@@ -1295,7 +1272,7 @@ export default function Home() {
                   setEditingTodo(
                     editingTodo
                       ? { ...editingTodo, notes: e.target.value }
-                      : null,
+                      : null
                   )
                 }
               />
@@ -1309,6 +1286,6 @@ export default function Home() {
           </DialogActions>
         </Dialog>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

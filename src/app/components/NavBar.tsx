@@ -32,6 +32,8 @@ import {
   AppRegistration,
   Person,
 } from "@mui/icons-material";
+import useNavbar from "@/hooks/useNavbar";
+import { useThemeContext } from "@/context/themeContext";
 
 interface NavBarProps {
   user: { id: number; username: string } | null;
@@ -48,16 +50,12 @@ const links = [
   { label: "Profile", href: "/profile" },
 ];
 
-export default function NavBar({
-  user,
-  isDarkMode,
-  toggleDarkMode,
-  onLogout,
-}: NavBarProps) {
+export default function NavBar({}: {}) {
+  const { user, onLogout } = useNavbar();
+  const { isDarkMode, toggleDarkMode } = useThemeContext();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-
   const isActive = (href: string) => pathname === href;
   const toggleDrawer = () => setMobileOpen((prev) => !prev);
   const openMenu = (event: React.MouseEvent<HTMLElement>) =>

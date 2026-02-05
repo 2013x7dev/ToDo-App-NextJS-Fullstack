@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ThemeProvider,
   CssBaseline,
   Container,
   Box,
@@ -28,6 +27,7 @@ import {
 import NavBar from "../components/NavBar";
 import { getAppTheme } from "../theme";
 import { TodoItem, TodoPriority } from "@/types/todo";
+import { useThemeContext } from "@/context/themeContext";
 
 const parseDate = (value?: string) => {
   if (!value) return null;
@@ -47,15 +47,14 @@ const priorityOrder: Record<TodoPriority, number> = {
 export default function FocusPage() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode } = useThemeContext();
   const [loading, setLoading] = useState(true);
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [secondsLeft, setSecondsLeft] = useState(focusMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTask, setActiveTask] = useState<TodoItem | null>(null);
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
   const router = useRouter();
 
   const chipGroupSx = {
@@ -79,18 +78,6 @@ export default function FocusPage() {
       }
     : {};
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
-  };
-
   const fetchTodos = async (userId: number, showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
@@ -105,15 +92,8 @@ export default function FocusPage() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-  }, []);
-
-  useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (!storedUser) {
       router.push("/auth/login");
@@ -205,7 +185,7 @@ export default function FocusPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -217,12 +197,7 @@ export default function FocusPage() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Paper
@@ -485,6 +460,6 @@ export default function FocusPage() {
           )}
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

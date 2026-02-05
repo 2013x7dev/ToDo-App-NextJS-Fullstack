@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ThemeProvider } from "@/context/themeContext";
+import { cookies } from "next/headers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,11 +21,13 @@ export const metadata: Metadata = {
   description: "A simple todo app built with Next.js",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 用户选择的主题模式
+  const initialDarkMode = (await cookies()).get("darkMode")?.value === "true";
   return (
     <html lang="en">
       <head>
@@ -62,9 +66,15 @@ export default function RootLayout({
         <meta property="og:site_name" content="The Next.js ToDo App" />
         <meta property="og:locale" content="en_US" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        suppressHydrationWarning={true}
+      >
         <Analytics />
-        {children}
+        {/* 确保只在根布局中提供 ThemeProvider, 单一实例 */}
+        <ThemeProvider initialDarkMode={initialDarkMode}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

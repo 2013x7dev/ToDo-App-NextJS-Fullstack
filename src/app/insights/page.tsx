@@ -26,6 +26,7 @@ import {
 import NavBar from "../components/NavBar";
 import { getAppTheme } from "../theme";
 import { TodoItem } from "@/types/todo";
+import { useThemeContext } from "@/context/themeContext";
 
 const parseDate = (value?: string) => {
   if (!value) return null;
@@ -39,11 +40,11 @@ const startOfDay = (date: Date) =>
 export default function InsightsPage() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const { isDarkMode } = useThemeContext();
   const [loading, setLoading] = useState(true);
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
   const router = useRouter();
 
   const sectionPaperSx = {
@@ -67,18 +68,6 @@ export default function InsightsPage() {
     alignItems: "center",
   };
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
-  };
-
   const fetchTodos = async (userId: number, showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
@@ -93,15 +82,8 @@ export default function InsightsPage() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-  }, []);
-
-  useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (!storedUser) {
       router.push("/auth/login");
@@ -136,7 +118,7 @@ export default function InsightsPage() {
       );
     }).length;
     const highPriority = todos.filter(
-      (t) => !t.completed && (t.priority || "medium") === "high",
+      (t) => !t.completed && (t.priority || "medium") === "high"
     ).length;
 
     const categoryMap: Record<string, number> = {};
@@ -168,11 +150,11 @@ export default function InsightsPage() {
       Object.entries(stats.categoryMap)
         .map(([category, count]) => ({ category, count }))
         .sort((a, b) => b.count - a.count),
-    [stats.categoryMap],
+    [stats.categoryMap]
   );
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -184,12 +166,7 @@ export default function InsightsPage() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Paper
@@ -454,6 +431,6 @@ export default function InsightsPage() {
           )}
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

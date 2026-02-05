@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ThemeProvider,
   CssBaseline,
   Container,
   Box,
@@ -27,8 +26,8 @@ import {
   Timeline as TimelineIcon,
 } from "@mui/icons-material";
 import NavBar from "../components/NavBar";
-import { getAppTheme } from "../theme";
 import { TodoItem } from "@/types/todo";
+import { ThemeProvider, useThemeContext } from "@/context/themeContext";
 
 const parseDate = (value?: string) => {
   if (!value) return null;
@@ -42,12 +41,12 @@ const startOfDay = (date: Date) =>
 export default function ProfilePage() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
+
+  const { isDarkMode, theme } = useThemeContext();
 
   const sectionPaperSx = {
     backgroundColor: isDarkMode ? "#0f1f1a" : "#ffffff",
@@ -70,18 +69,6 @@ export default function ProfilePage() {
     alignItems: "center",
   };
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
-  };
-
   const fetchTodos = async (userId: number, showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
@@ -96,15 +83,8 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-  }, []);
-
-  useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (!storedUser) {
       router.push("/auth/login");
@@ -139,7 +119,7 @@ export default function ProfilePage() {
       );
     }).length;
     const highPriority = todos.filter(
-      (t) => !t.completed && (t.priority || "medium") === "high",
+      (t) => !t.completed && (t.priority || "medium") === "high"
     ).length;
 
     return {
@@ -166,13 +146,13 @@ export default function ProfilePage() {
     .sort(
       (a, b) =>
         (parseDate(a.dueDate)?.getTime() ?? 0) -
-        (parseDate(b.dueDate)?.getTime() ?? 0),
+        (parseDate(b.dueDate)?.getTime() ?? 0)
     )
     .slice(0, 4);
 
   const priorityCounts = ["high", "medium", "low"].map((level) => {
     const count = todos.filter(
-      (t) => (t.priority || "medium") === level && !t.completed,
+      (t) => (t.priority || "medium") === level && !t.completed
     ).length;
     return { level, count };
   });
@@ -198,7 +178,7 @@ export default function ProfilePage() {
     next7Days.reduce((max, d) => Math.max(max, d.count), 1) || 1;
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -210,12 +190,7 @@ export default function ProfilePage() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Paper
@@ -555,7 +530,7 @@ export default function ProfilePage() {
                     <Stack spacing={1.5}>
                       {priorityCounts.map((p) => {
                         const percent = Math.round(
-                          (p.count / maxPriorityCount) * 100,
+                          (p.count / maxPriorityCount) * 100
                         );
                         const color =
                           p.level === "high"
@@ -617,7 +592,7 @@ export default function ProfilePage() {
                     <Grid container spacing={1}>
                       {next7Days.map((day) => {
                         const percent = Math.round(
-                          (day.count / maxUpcomingCount) * 100,
+                          (day.count / maxUpcomingCount) * 100
                         );
                         return (
                           <Grid item xs={12} sm={6} md={3} key={day.label}>
@@ -739,6 +714,6 @@ export default function ProfilePage() {
           )}
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

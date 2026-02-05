@@ -26,6 +26,7 @@ import {
 import NavBar from "../components/NavBar";
 import { getAppTheme } from "../theme";
 import { TodoItem } from "@/types/todo";
+import { useThemeContext } from "@/context/themeContext";
 
 const parseDate = (value?: string) => {
   if (!value) return null;
@@ -39,11 +40,10 @@ const startOfDay = (date: Date) =>
 export default function PlannerPage() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode } = useThemeContext();
   const [loading, setLoading] = useState(true);
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
   const router = useRouter();
 
   const chipGroupSx = {
@@ -67,18 +67,6 @@ export default function PlannerPage() {
       }
     : {};
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
-  };
-
   const fetchTodos = async (userId: number, showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
@@ -93,15 +81,8 @@ export default function PlannerPage() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-  }, []);
-
-  useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (!storedUser) {
       router.push("/auth/login");
@@ -133,7 +114,7 @@ export default function PlannerPage() {
         .sort(
           (a, b) =>
             (parseDate(a.dueDate)?.getTime() ?? 0) -
-            (parseDate(b.dueDate)?.getTime() ?? 0),
+            (parseDate(b.dueDate)?.getTime() ?? 0)
         );
 
       return {
@@ -151,11 +132,11 @@ export default function PlannerPage() {
   const backlog = todos.filter((todo) => !todo.dueDate && !todo.completed);
   const completed = todos.filter((todo) => todo.completed);
   const highPriority = todos.filter(
-    (todo) => !todo.completed && (todo.priority || "medium") === "high",
+    (todo) => !todo.completed && (todo.priority || "medium") === "high"
   );
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -167,12 +148,7 @@ export default function PlannerPage() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Paper
@@ -435,7 +411,7 @@ export default function PlannerPage() {
                         value={
                           todos.length
                             ? Math.round(
-                                (completed.length / todos.length) * 100,
+                                (completed.length / todos.length) * 100
                               )
                             : 0
                         }
@@ -469,6 +445,6 @@ export default function PlannerPage() {
           )}
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

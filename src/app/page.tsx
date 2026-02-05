@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ThemeProvider,
   CssBaseline,
   Container,
   Box,
@@ -27,7 +26,7 @@ import {
   Sync,
 } from "@mui/icons-material";
 import NavBar from "./components/NavBar";
-import { getAppTheme } from "./theme";
+import { useThemeContext } from "@/context/themeContext";
 
 const featureCards = [
   {
@@ -110,11 +109,15 @@ const useCases = [
 ];
 
 export default function LandingPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, theme } = useThemeContext();
+
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
+
+  // useMemo(() => ..., [isDarkMode])	React 性能优化钩子，仅当依赖项 isDarkMode 变化时重新计算
+  // getAppTheme(isDarkMode)	调用主题生成函数，传入当前暗色模式状态
+  // const theme	缓存的主题配置对象，用于 MUI ThemeProvider
 
   const sectionPaperSx = {
     backgroundColor: isDarkMode ? "#0f1f1a" : "#ffffff",
@@ -122,32 +125,17 @@ export default function LandingPage() {
     borderColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
   };
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-  };
-
   useEffect(() => {
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (storedUser) {
       setUser(storedUser);
     }
-    const prefersDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(prefersDarkMode);
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -158,12 +146,7 @@ export default function LandingPage() {
           color: isDarkMode ? "#e6f3ec" : "#0d2621",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="lg" sx={{ py: 6 }}>
           <Grid container spacing={3} alignItems="center">
@@ -571,6 +554,6 @@ export default function LandingPage() {
           </Paper>
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }

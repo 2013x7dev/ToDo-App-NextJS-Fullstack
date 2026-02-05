@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import NavBar from "@/app/components/NavBar";
 import { getAppTheme } from "@/app/theme";
+import { useThemeContext } from "@/context/themeContext";
 
 export default function ForgotPasswordPage() {
   const [username, setUsername] = useState("");
@@ -35,13 +36,12 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null,
+    null
   );
 
   const router = useRouter();
-  const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
+  const { isDarkMode, theme } = useThemeContext();
 
   const fieldBaseSx = {
     "& .MuiOutlinedInput-root": {
@@ -69,28 +69,11 @@ export default function ForgotPasswordPage() {
   };
 
   useEffect(() => {
-    const storedDarkMode = JSON.parse(
-      localStorage.getItem("darkMode") || "true",
-    );
-    setIsDarkMode(storedDarkMode);
-
     const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
+      localStorage.getItem("currentUser") || "null"
     );
     if (storedUser) setUser(storedUser);
   }, []);
-
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
-
-  const logout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
-    router.push("/auth/login");
-  };
 
   const handleVerifyUsername = async () => {
     if (!username.trim()) {
@@ -151,7 +134,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -163,12 +146,7 @@ export default function ForgotPasswordPage() {
           transition: "background 0.3s ease",
         }}
       >
-        <NavBar
-          user={user}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={logout}
-        />
+        <NavBar />
 
         <Container maxWidth="md" sx={{ py: 6 }}>
           <Paper
@@ -305,6 +283,6 @@ export default function ForgotPasswordPage() {
           </Paper>
         </Container>
       </Box>
-    </ThemeProvider>
+    </>
   );
 }
