@@ -68,10 +68,10 @@ export default function InsightsPage() {
     alignItems: "center",
   };
 
-  const fetchTodos = async (userId: number, showLoading = false) => {
+  const fetchTodos = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await fetch(`/api/todos?userId=${userId}`);
+      const response = await fetch(`/api/todos`);
       const data: TodoItem[] = await response.json();
       setTodos(data);
     } catch (err) {
@@ -82,15 +82,7 @@ export default function InsightsPage() {
   };
 
   useEffect(() => {
-    const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
-    if (!storedUser) {
-      router.push("/auth/login");
-      return;
-    }
-    setUser(storedUser);
-    fetchTodos(storedUser.id, true);
+    fetchTodos(true);
   }, [router]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -222,7 +214,7 @@ export default function InsightsPage() {
                     variant="contained"
                     color="secondary"
                     startIcon={<Refresh />}
-                    onClick={() => fetchTodos(user?.id || 0, true)}
+                    onClick={() => fetchTodos(true)}
                     sx={{ color: "#ffffff" }}
                   >
                     Refresh data

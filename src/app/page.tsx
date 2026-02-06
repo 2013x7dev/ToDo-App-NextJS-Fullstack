@@ -27,6 +27,7 @@ import {
 } from "@mui/icons-material";
 import NavBar from "./components/NavBar";
 import { useThemeContext } from "@/context/themeContext";
+import AuthGuard from "./components/AuthGuard";
 
 const featureCards = [
   {

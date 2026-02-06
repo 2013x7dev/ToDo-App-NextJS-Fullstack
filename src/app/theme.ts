@@ -1,6 +1,8 @@
 import { createTheme } from "@mui/material/styles";
 
-export const getAppTheme = (isDarkMode: boolean) =>
+import { Theme } from "@mui/material";
+
+export const getAppTheme = (isDarkMode: boolean): Theme =>
   createTheme({
     palette: {
       mode: isDarkMode ? "dark" : "light",

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import localFont from "next/font/local";
 import "./globals.css";
-import { ThemeProvider } from "@/context/themeContext";
 import { cookies } from "next/headers";
+import { Providers } from "./providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,7 +26,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 用户选择的主题模式
+  // 获取用户选择的主题模式
   const initialDarkMode = (await cookies()).get("darkMode")?.value === "true";
   return (
     <html lang="en">
@@ -70,11 +70,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable}`}
         suppressHydrationWarning={true}
       >
+        {/* next-auth session provider */}
         <Analytics />
-        {/* 确保只在根布局中提供 ThemeProvider, 单一实例 */}
-        <ThemeProvider initialDarkMode={initialDarkMode}>
-          {children}
-        </ThemeProvider>
+        <Providers initialDarkMode={initialDarkMode}>{children}</Providers>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 import {
   CssBaseline,
   Container,
@@ -15,6 +16,7 @@ import {
   InputAdornment,
   Stack,
   LinearProgress,
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Refresh } from "@mui/icons-material";
 import Link from "next/link";
@@ -27,9 +29,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<{ id: number; username: string } | null>(
-    null
-  );
   const router = useRouter();
   const { isDarkMode, theme } = useThemeContext();
 
@@ -58,14 +57,6 @@ export default function LoginPage() {
     },
   };
 
-  // 初始化时从 localStorage 加载主题和用户状态
-  useEffect(() => {
-    const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
-    if (storedUser) setUser(storedUser);
-  }, []);
-
   const handleLogin = async () => {
     if (!username || !password) {
       setError("Username and password are required");
@@ -76,22 +67,16 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+      const result = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
-        setUser(data.user);
-        router.push("/home");
+      console.log("signIn result:", result);
+      if (result?.error) {
+        setError(result.error);
       } else {
-        setError(data.error || "Invalid username or password");
+        router.push("/home");
       }
     } catch (err) {
       console.error("Error during login:", err);
@@ -177,41 +162,42 @@ export default function LoginPage() {
                 <Link href="/auth/register">Register</Link>
               </Typography>
             </Stack>
-
             {error && (
-              <Typography color="error" sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
-              </Typography>
+              </Alert>
             )}
-
-            <Stack spacing={2}>
+            <Stack spacing={2} mb={2}>
               <TextField
+                required
                 label="Username"
-                fullWidth
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder="Enter your username"
                 sx={fieldBaseSx}
               />
               <TextField
+                required
                 label="Password"
                 type={showPassword ? "text" : "password"}
-                fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                sx={fieldBaseSx}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
+                placeholder="Enter your password"
+                slotProps={{
+                  input: {
+                    endAdornment: (
                       <IconButton
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
                       >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {!showPassword ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
-                    </InputAdornment>
-                  ),
+                    ),
+                  },
                 }}
+                sx={fieldBaseSx}
               />
               <Button
                 variant="contained"

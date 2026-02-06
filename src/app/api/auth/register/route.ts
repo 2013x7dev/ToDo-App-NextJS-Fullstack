@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
+import { MD5 } from "crypto-js";
 
 interface User {
   username: string;
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   if (!username || !password) {
     return NextResponse.json(
       { error: "Username and password are required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -41,30 +42,32 @@ export async function POST(request: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: "User already exists" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     // Create a new user
-    const newUser = { username, password }; // Note: Password is not hashed (not secure)
+    const hashedPassword = MD5(password).toString();
+    console.log("Hashed Password:", hashedPassword);
+    const newUser = { username, password: hashedPassword }; // Note: Password is not hashed (not secure)
     const result = await usersCollection.insertOne(newUser);
 
     if (result.acknowledged) {
       return NextResponse.json(
         { message: "User registered successfully", user: { username } },
-        { status: 201 },
+        { status: 201 }
       );
     } else {
       return NextResponse.json(
         { error: "Failed to register user" },
-        { status: 500 },
+        { status: 500 }
       );
     }
   } catch (error) {
     console.error("Error during user registration:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

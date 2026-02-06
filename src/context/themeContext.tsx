@@ -4,7 +4,7 @@ import { getAppTheme } from "@/app/theme";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material";
 import {
   PropsWithChildren,
-  use,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -28,17 +28,18 @@ export function ThemeProvider({
   children,
   initialDarkMode,
 }: PropsWithChildren<{ initialDarkMode: boolean }>) {
-  console.log("initialDarkMode", initialDarkMode);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(initialDarkMode);
   const theme = useMemo(() => getAppTheme(isDarkMode), [isDarkMode]);
 
   // Toggle dark mode
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    document.cookie = `darkMode=${next}; path=/; max-age=31536000`;
-    localStorage.setItem("darkMode", JSON.stringify(next));
-  };
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode((prev) => {
+      console.log("isDarkMode pre", prev);
+      const next = !prev;
+      document.cookie = `darkMode=${next}; path=/; max-age=31536000`;
+      return next;
+    });
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode, theme }}>

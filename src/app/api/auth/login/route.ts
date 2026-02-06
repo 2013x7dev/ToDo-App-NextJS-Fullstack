@@ -10,6 +10,9 @@ const collectionName = "users";
 export async function POST(request: Request) {
   const { username, password } = await request.json();
 
+  console.log("username", username);
+  console.log("password", password);
+
   // Validate input
   if (!username || !password) {
     return NextResponse.json(

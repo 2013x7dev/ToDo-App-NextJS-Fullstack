@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 import { TodoItem, TodoPriority } from "@/types/todo";
+import { getToken, JWT } from "next-auth/jwt";
+import { NextApiRequest } from "next";
 
 // MongoDB Configuration
 const uri = process.env.MONGO_DB_URI || "";
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
   if (!userId || !task) {
     return NextResponse.json(
       { error: "User ID and task are required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -48,30 +50,27 @@ export async function POST(request: Request) {
     const updateResult = await usersCollection.updateOne(
       { userId },
       { $push: { todos: newTodo } },
-      { upsert: true },
+      { upsert: true }
     );
 
     return NextResponse.json(
       { message: "Todo added successfully", result: updateResult },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error adding todo:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 // GET: Fetch todos for a user
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-
-  if (!userId) {
-    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
-  }
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  // 必须传递 authOptions， 否则即使在session中返回了id也获取不到
+  const { sub: userId } = (await getToken({ req })) as JWT;
 
   try {
     await client.connect();
@@ -93,7 +92,7 @@ export async function GET(request: Request) {
     console.error("Error fetching todos:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -105,7 +104,7 @@ export async function PATCH(request: Request) {
   if (!userId || !todoId) {
     return NextResponse.json(
       { error: "User ID and Todo ID are required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -119,18 +118,18 @@ export async function PATCH(request: Request) {
 
     const updateResult = await usersCollection.updateOne(
       { userId, "todos.id": normalizedTodoId },
-      { $set: { "todos.$.completed": completed } },
+      { $set: { "todos.$.completed": completed } }
     );
 
     return NextResponse.json(
       { message: "Todo updated successfully", result: updateResult },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error updating todo:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -151,7 +150,7 @@ export async function PUT(request: Request) {
   if (!userId || !todoId) {
     return NextResponse.json(
       { error: "User ID and Todo ID are required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -167,7 +166,7 @@ export async function PUT(request: Request) {
   if (Object.keys(updateFields).length === 0) {
     return NextResponse.json(
       { error: "No update fields provided" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -181,18 +180,18 @@ export async function PUT(request: Request) {
 
     const updateResult = await usersCollection.updateOne(
       { userId, "todos.id": normalizedTodoId },
-      { $set: updateFields },
+      { $set: updateFields }
     );
 
     return NextResponse.json(
       { message: "Todo updated successfully", result: updateResult },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error updating todo:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -200,11 +199,13 @@ export async function PUT(request: Request) {
 // DELETE: Remove a todo
 export async function DELETE(request: Request) {
   const { userId, todoId } = await request.json();
+  const session = await getServerSession();
+  console.log(session);
 
   if (!userId || !todoId) {
     return NextResponse.json(
       { error: "User ID and Todo ID are required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -218,18 +219,18 @@ export async function DELETE(request: Request) {
 
     const deleteResult = await usersCollection.updateOne(
       { userId },
-      { $pull: { todos: { id: normalizedTodoId } } },
+      { $pull: { todos: { id: normalizedTodoId } } }
     );
 
     return NextResponse.json(
       { message: "Todo deleted successfully", result: deleteResult },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting todo:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

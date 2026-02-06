@@ -120,11 +120,11 @@ export default function Home() {
     return itemRefs.current[id];
   };
 
-  const fetchTodos = async (userId: number, showLoading = false) => {
+  const fetchTodos = async (showLoading = false) => {
     if (showLoading) setLoading(true);
 
     try {
-      const response = await fetch(`/api/todos?userId=${userId}`);
+      const response = await fetch(`/api/todos`);
       const data: TodoItem[] = await response.json();
 
       if (!isEqual(data, todosRef.current)) {
@@ -150,20 +150,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
-    if (!storedUser) {
-      router.push("/auth/login");
-      return;
-    }
-
-    setUser(storedUser);
-    fetchTodos(storedUser.id, true);
-
-    const interval = setInterval(() => fetchTodos(storedUser.id), 8000);
+    fetchTodos(true);
+    const interval = setInterval(() => fetchTodos(), 8000);
     return () => clearInterval(interval);
-  }, [router]);
+  }, []);
 
   const addTodo = async () => {
     if (!task.trim() || !user) return;
@@ -190,7 +180,7 @@ export default function Home() {
         setPriority("medium");
         setDueDate("");
         setCategory("General");
-        fetchTodos(user.id);
+        fetchTodos();
         taskInputRef.current?.focus();
       }
     } catch (err) {
@@ -213,7 +203,7 @@ export default function Home() {
           completed: !todos.find((t) => t.id === todoId)?.completed,
         }),
       });
-      if (response.ok) fetchTodos(user.id);
+      if (response.ok) fetchTodos();
     } catch (err) {
       console.error("Error toggling completion:", err);
     } finally {
@@ -233,7 +223,7 @@ export default function Home() {
           todoId,
         }),
       });
-      if (response.ok) fetchTodos(user.id);
+      if (response.ok) fetchTodos();
     } catch (err) {
       console.error("Error deleting todo:", err);
     } finally {
@@ -261,7 +251,7 @@ export default function Home() {
       });
 
       if (response.ok) {
-        fetchTodos(user.id);
+        fetchTodos();
         setEditOpen(false);
         setEditingTodo(null);
       }
@@ -543,7 +533,7 @@ export default function Home() {
                         <Button
                           variant="outlined"
                           size="small"
-                          onClick={() => fetchTodos(user?.id || 0, true)}
+                          onClick={() => fetchTodos(true)}
                           startIcon={<Refresh />}
                           sx={{
                             color: "#fff",
@@ -736,7 +726,7 @@ export default function Home() {
                       <Button
                         variant="outlined"
                         startIcon={<Refresh />}
-                        onClick={() => fetchTodos(user?.id || 0, true)}
+                        onClick={() => fetchTodos(true)}
                       >
                         Sync
                       </Button>

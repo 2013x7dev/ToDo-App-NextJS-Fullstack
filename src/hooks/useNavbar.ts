@@ -15,19 +15,10 @@ export default function useNavbar() {
 
   const router = useRouter();
   const onLogout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
     router.push("/auth/login");
   };
 
-  useEffect(() => {
-    const storedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
+  useEffect(() => {}, []);
 
   return { user, onLogout } as NavbarReturn;
 }
